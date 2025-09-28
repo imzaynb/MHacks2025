@@ -1,4 +1,15 @@
-from dataclasses       import dataclass
+import math
+from dataclasses import dataclass
+
+def deadband(raw, deadband):
+    if abs(raw) > deadband:
+        return (abs(raw) - deadband) * math.copysign(1, raw)
+    else:
+        return 0
+
+def clamp(raw_v, min_v, max_v):
+    return min(max_v, max(min_v, raw_v))
+
 
 @dataclass
 class Vec3d:

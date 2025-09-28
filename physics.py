@@ -1,72 +1,43 @@
-import datetime as dt
-from mytypes import Vec3d
+# python libs
+from datetime import datetime as dt
 
-class PhysicsEngine:
+# our fiels
+from helpers import clamp, Vec3d
+
+class Physics:
     def __init__(self, get_acceleration):
+        self.time_start = dt.now().timestamp()
+        self.time_prev  = None
         self.get_acceleration = get_acceleration
 
-        self.time_start = dt.datetime.now().timestamp()
-        self.time_data = []
+        self.acceleration      = Vec3d(0.0, 0.0, 0.0)
+        self.velocity          = Vec3d(0.0, 0.0, 0.0)
+        self.position          = Vec3d(0.0, 0.0, 0.0)
+        self.smoothed_position = Vec3d(0.0, 0.0, 0.0)
 
-        # X and Y data
-        self.accel_x_data = []
-        self.accel_y_data = []
-        self.position_x_raw = []
-        self.position_y_raw = []
+    def step(self):
+        raw_acceleration = self.get_acceleration()
+        self.time_now = dt.now().timestamp()
 
-        self.velocity = Vec3d(0.0, 0.0, 0.0)
-        self.position = Vec3d(0.0, 0.0, 0.0)
+        delta_t       = (self.time_now - self.time_start) if self.time_prev == None else (self.time_now - self.time_prev)
 
-    def update(self):
-        # Get acceleration
-        acceleration = self.get_acceleration()
-        current_time = dt.datetime.now().timestamp()
-        self.time_data.append(current_time - self.time_start)
+        self.acceleration.x = clamp(raw_acceleration.x, -4000.0, 4000.0)
+        adjusted_velocity_x = self.velocity.x + self.acceleration.x * delta_t if self.acceleration.x != 0 else 0
+        self.velocity.x = clamp(adjusted_velocity_x, -1000.0, 1000)
+        self.position.x = clamp(self.position.x + self.velocity.x * delta_t, 0, 1080)
+        
+        self.acceleration.y = clamp(raw_acceleration.y, -4000.0, 4000.0)
+        adjusted_velocity_y = self.velocity.y + self.acceleration.y * delta_t if self.acceleration.y != 0 else 0
+        self.velocity.y = clamp(adjusted_velocity_y, -1000.0, 1000)
+        self.position.y = clamp(self.position.y + self.velocity.y * delta_t, 0, 1920)
+        
+        self.acceleration.z = clamp(raw_acceleration.z, -4000.0, 4000.0)
+        adjusted_velocity_z = self.velocity.z + self.acceleration.z * delta_t if self.acceleration.z != 0 else 0
+        self.velocity.z = clamp(adjusted_velocity_z, -1000.0, 1000)
+        self.position.z = clamp(self.position.z + self.velocity.z * delta_t, 0, 1080)
 
-        # Compute dt
-        dt_sec = 0.01
-        if len(self.time_data) > 1:
-            dt_sec = self.time_data[-1] - self.time_data[-2]
+        self.time_prev = self.time_now
 
-        # --- X axis ---
-        ax = max(min(acceleration.x, 4000.0), -4000.0)
-        self.accel_x_data.append(ax)
 
-        if ax == 0:
-            self.velocity.x = 0.0
-        else:
-            self.velocity.x += ax * dt_sec
+        print(f"{delta_t},{self.acceleration.x},{self.velocity.x},{self.position.x}")
 
-        self.velocity.x = max(min(self.velocity.x, 1000.0), -1000.0)
-        self.position.x += self.velocity.x * dt_sec
-        self.position.x = max(0, min(1080, self.position.x))
-        self.position_x_raw.append(self.position.x)
-
-        # --- Y axis ---
-        ay = max(min(acceleration.y, 4000.0), -4000.0)
-        self.accel_y_data.append(ay)
-
-        if ay == 0:
-            self.velocity.y = 0.0
-        else:
-            self.velocity.y += ay * dt_sec
-
-        self.velocity.y = max(min(self.velocity.y, 1000.0), -1000.0)
-        self.position.y += self.velocity.y * dt_sec
-        self.position.y = max(0, min(1920, self.position.y))  # assuming 1080p vertical clamp
-        self.position_y_raw.append(self.position.y)
-
-        # Debug prints
-        print(f"Time: {self.time_data[-1]:.2f}s, "
-              f"Accel X: {ax:.2f}, Vel X: {self.velocity.x:.2f}, Pos X: {self.position.x:.2f}, "
-              f"Accel Y: {ay:.2f}, Vel Y: {self.velocity.y:.2f}, Pos Y: {self.position.y:.2f}")
-
-        # Keep data arrays reasonable
-        limit = 50
-        self.time_data[:] = self.time_data[-limit:]
-        self.accel_x_data[:] = self.accel_x_data[-limit:]
-        self.accel_y_data[:] = self.accel_y_data[-limit:]
-        self.position_x_raw[:] = self.position_x_raw[-limit:]
-        self.position_y_raw[:] = self.position_y_raw[-limit:]
-
-        return ax, self.velocity.x, self.position.x, ay, self.velocity.y, self.position.y
