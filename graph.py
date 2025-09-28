@@ -91,6 +91,7 @@ class Graph:
         self.acceleration_xs[:] = self.acceleration_xs[-self.data_limit:]
         self.acceleration_ys[:] = self.acceleration_ys[-self.data_limit:]
         self.acceleration_zs[:] = self.acceleration_zs[-self.data_limit:]
+        self.time_data[:] = self.time_data[-self.data_limit:]
         
         self.velocity_xs[:] = self.velocity_xs[-self.data_limit:]
         self.velocity_ys[:] = self.velocity_ys[-self.data_limit:]

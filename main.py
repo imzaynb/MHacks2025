@@ -13,7 +13,7 @@ def main():
     physics  = Physics(lambda: freewili.acceleration)
     mouse = pynput.mouse.Controller()
 
-    enable_graph = False
+    enable_graph = False 
     if enable_graph:
         graph = Graph(lambda: physics.acceleration, lambda: physics.velocity, lambda: physics.position)
 
@@ -21,11 +21,9 @@ def main():
         while True:
             freewili.process_events()
             physics.step()
-            mouse.position = (1980-physics.position.x, 1080-physics.position.y)
+            mouse.position = (physics.position.y, 1080-physics.position.x)
             if enable_graph:
                 plt.pause(0.01)
-            else:
-                time.sleep(0.01)
     except KeyboardInterrupt:
         print("Keyboard Interrupt detected")
         freewili.end()
