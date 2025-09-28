@@ -3,8 +3,9 @@ import time
 
 # external libs
 from freewili          import FreeWili
-from freewili.types    import EventType, AccelData
+from freewili.types    import FreeWiliProcessorType, EventType, AccelData
 from freewili.framing  import ResponseFrame
+from enum              import Enum
 
 # personal files
 from helpers           import deadband, Vec3d 
@@ -22,6 +23,13 @@ class FailToOpenDevice(Exception):
 
 
 class FreeWiliDevice():
+    class Colors(Enum): 
+        RED = (60, 0, 0) 
+        GREEN = (0, 60, 0) 
+        BLUE = (0, 0, 60)
+        YELLOW = (30, 30, 0)
+        WHITE = (20, 20, 20)
+        OFF = (0, 0, 0)
     def __init__(self, acceleration_period=1):
         self.acceleration_period = acceleration_period
 
@@ -58,6 +66,37 @@ class FreeWiliDevice():
         except KeyboardInterrupt:
             print("Keyboard Interrupt detected")
             self.end()
+
+    def configure_led(self, color: Colors, duration: float = 1.0, hold: bool = False):
+        r, g, b = color.value
+
+        for io in range(7):
+            res = self.freewili.set_board_leds(
+                io=io,
+                red=r,
+                green=g,
+                blue=b,
+                processor=FreeWiliProcessorType.Display
+            )
+            # if res.is_err():
+            #     print(f"LED {io} command failed: {res.unwrap_err()}")
+            # else:
+            #     print(f"LED {io} set to {color.name} (R={r}, G={g}, B={b})")
+        if not hold:
+            # Keep the color for `duration` seconds
+            time.sleep(duration)
+
+            # Turn off all LEDs
+            for io in range(7):
+                self.freewili.set_board_leds(
+                    io=io,
+                    red=0,
+                    green=0,
+                    blue=0,
+                    processor=FreeWiliProcessorType.Display
+                )
+            # print("All LEDs turned off")
+
 
 
     def event_handler(self, event_type: EventType, frame: ResponseFrame, data):

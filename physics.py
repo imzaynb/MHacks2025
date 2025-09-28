@@ -12,8 +12,7 @@ class Physics:
 
         self.acceleration      = Vec3d(0.0, 0.0, 0.0)
         self.velocity          = Vec3d(0.0, 0.0, 0.0)
-        self.position          = Vec3d(0.0, 0.0, 0.0)
-        self.smoothed_position = Vec3d(0.0, 0.0, 0.0)
+        self.position          = Vec3d(1920/2, 1080/2, 0.0)
 
     def step(self):
         raw_acceleration = self.get_acceleration()
