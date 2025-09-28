@@ -5,13 +5,14 @@ import datetime as dt
 from mytypes import Vec3d
 
 class Graph:
-    def __init__(self):
+    def __init__(self, get_acceleration):
+        self.get_acceleration = get_acceleration
+        
         self.time_start = dt.datetime.now().timestamp()
         self.time_data = []
         self.x_data = []
         self.y_data = []
         self.z_data = []
-        self.acceleration = Vec3d(0, 0, 0)
 
         self.data_limit = 50
 
@@ -31,14 +32,17 @@ class Graph:
 
 
     def add_data(self, i):
+        # Get acceleration
+        acceleration = self.get_acceleration()
+
         # Get the current time and set it on the time_data
         current_time = dt.datetime.now().timestamp()
         self.time_data.append(current_time-self.time_start)
         
         # Append acceleration datas
-        self.x_data.append(self.acceleration.x)
-        self.y_data.append(self.acceleration.y)
-        self.z_data.append(self.acceleration.z)
+        self.x_data.append(acceleration.x)
+        self.y_data.append(acceleration.y)
+        self.z_data.append(acceleration.z)
 
         # Chop off everything older than the data limit
         self.time_data[:] = self.time_data[-self.data_limit:] 
@@ -57,8 +61,8 @@ class Graph:
         # The y-axis needs to be re-scaled to fit the min/max of visible data
         all_visible_data = self.x_data + self.y_data + self.z_data
         if all_visible_data:
-            min_val = min(all_visible_data)
-            max_val = max(all_visible_data)
+            # min_val = min(all_visible_data)
+            # max_val = max(all_visible_data)
 
             self.ax.set_ylim(-50000, 50000)
 
@@ -69,10 +73,6 @@ class Graph:
         # print(f"{self.y_data}")
 
         return self.line_x, self.line_y, self.line_z
-    
-    def set_acceleration(self, acceleration: Vec3d):
-        print(f"{acceleration}")
-        self.acceleration = acceleration
     
     def show(self):
         plt.show()
