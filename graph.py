@@ -6,7 +6,7 @@ from mytypes import Vec3d
 
 class Graph:
     def __init__(self):
-        self.time_start = dt.datetime.now().time()
+        self.time_start = dt.datetime.now().timestamp()
         self.time_data = []
         self.x_data = []
         self.y_data = []
@@ -30,11 +30,11 @@ class Graph:
         self.ani = animation.FuncAnimation(self.fig, self.add_data, interval=1000, blit=False)
 
 
-    def add_data(self):
+    def add_data(self, i):
         # Get the current time and set it on the time_data
-        current_time = dt.datetime.now().time()
+        current_time = dt.datetime.now().timestamp()
         self.time_data.append(current_time-self.time_start)
-
+        
         # Append acceleration datas
         self.x_data.append(self.acceleration.x)
         self.y_data.append(self.acceleration.y)
@@ -60,16 +60,20 @@ class Graph:
             min_val = min(all_visible_data)
             max_val = max(all_visible_data)
 
-            self.ax.self(min_val - 1, max_val - 1)
+            self.ax.set_ylim(-50000, 50000)
 
         self.ax.tick_params(axis='x', rotation=45)
-        self.plt.tight_layout()
+        plt.tight_layout()
+
+        # print(f"{self.x_data}")
+        # print(f"{self.y_data}")
 
         return self.line_x, self.line_y, self.line_z
     
     def set_acceleration(self, acceleration: Vec3d):
+        print(f"{acceleration}")
         self.acceleration = acceleration
     
-    def show():
+    def show(self):
         plt.show()
     

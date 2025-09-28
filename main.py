@@ -15,12 +15,13 @@ def main():
     freewili = FreeWiliDevice()
     mouse = pynput.mouse.Controller()
     animation = Graph()
+    animation.show()
 
     try:
         while True:
             freewili.process_events()
             print(f"{freewili.acceleration=}")
-            mouse.move(-freewili.acceleration.x/100, freewili.acceleration.y/100)
+            #mouse.move(-freewili.acceleration.x/100, freewili.acceleration.y/100)
             animation.set_acceleration(freewili.acceleration)
             time.sleep(0.01)
     except KeyboardInterrupt:
