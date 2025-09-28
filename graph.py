@@ -1,79 +1,96 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import datetime as dt
-
-from mytypes import Vec3d
+from mytypes import Vec3d  # Your Vec3d dataclass
 
 class Graph:
-    def __init__(self, get_acceleration):
+    def __init__(self, get_acceleration, ema_alpha=0.2):
         self.get_acceleration = get_acceleration
-        
+        self.ema_alpha = ema_alpha  # smoothing factor for EMA
+
         self.time_start = dt.datetime.now().timestamp()
-        self.time_data = []
-        self.x_data = []
-        self.y_data = []
-        self.z_data = []
+        self.time_data = [0.0]
+        self.accel_x_data = [0.0]        # X acceleration
+        self.position_x_raw = [0.0]      # Raw X position
+        self.position_x_smooth = [0.0]   # EMA-smoothed X position
+
+        # Use Vec3d for velocity and position
+        self.velocity = Vec3d(0.0, 0.0, 0.0)
+        self.position = Vec3d(0.0, 0.0, 0.0)
+        self.ema_position_x = 0.0
 
         self.data_limit = 50
 
         self.fig, self.ax = plt.subplots(figsize=(10, 6))
 
-        self.line_x, = self.ax.plot(self.time_data, self.x_data, label="Acceleration X", color="blue")
-        self.line_y, = self.ax.plot(self.time_data, self.y_data, label="Acceleration Y", color="green")
-        self.line_z, = self.ax.plot(self.time_data, self.z_data, label="Acceleration Z", color="yellow")
+        # Plot lines
+        self.line_accel_x, = self.ax.plot(self.time_data, self.accel_x_data, label="Accel X", color="blue")
+        self.line_pos_raw, = self.ax.plot(self.time_data, self.position_x_raw, label="Raw Pos X", color="orange")
+        self.line_pos_smooth, = self.ax.plot(self.time_data, self.position_x_smooth, label="Smoothed Pos X", color="red")
 
-        self.ax.set_title("Acceleration data")
-        self.ax.set_xlabel("Time")
-        self.ax.set_ylabel("Acceleration")
+        self.ax.set_title("Acceleration and X Position (Raw vs Smoothed)")
+        self.ax.set_xlabel("Time (s)")
+        self.ax.set_ylabel("Value")
         self.ax.legend()
         self.ax.grid(True)
 
-        self.ani = animation.FuncAnimation(self.fig, self.add_data, interval=1000, blit=False)
-
+        self.ani = animation.FuncAnimation(self.fig, self.add_data, interval=10, blit=False)
+        plt.ion()
 
     def add_data(self, i):
         # Get acceleration
         acceleration = self.get_acceleration()
 
-        # Get the current time and set it on the time_data
+        # Current time
         current_time = dt.datetime.now().timestamp()
-        self.time_data.append(current_time-self.time_start)
-        
-        # Append acceleration datas
-        self.x_data.append(acceleration.x)
-        self.y_data.append(acceleration.y)
-        self.z_data.append(acceleration.z)
+        self.time_data.append(current_time - self.time_start)
 
-        # Chop off everything older than the data limit
-        self.time_data[:] = self.time_data[-self.data_limit:] 
-        self.x_data[:] = self.x_data[-self.data_limit:] 
-        self.y_data[:] = self.y_data[-self.data_limit:] 
-        self.z_data[:] = self.z_data[-self.data_limit:] 
+        # Compute dt
+        dt_sec = 0.01
+        if len(self.time_data) > 1:
+            dt_sec = self.time_data[-1] - self.time_data[-2]
 
-        # Update the line
-        self.line_x.set_data(self.time_data, self.x_data)
-        self.line_y.set_data(self.time_data, self.y_data)
-        self.line_z.set_data(self.time_data, self.z_data)
-        
-        # Re-scale the axes
+        # Only X acceleration
+        ax = acceleration.x
+        self.accel_x_data.append(ax)
+
+            # Zero velocity if acceleration is near zero
+        if abs(ax) == 0:
+            self.velocity.x = 0.0
+
+        # Integrate velocity and position
+        self.velocity.x += ax * dt_sec
+        self.position.x += self.velocity.x * dt_sec
+        self.position.x = max(0, min(1920, self.position.x))
+
+        self.position_x_raw.append(self.position.x)
+
+        # EMA smoothing for position
+        self.ema_position_x = self.ema_alpha * self.position.x + (1 - self.ema_alpha) * self.ema_position_x
+        self.position_x_smooth.append(self.ema_position_x)
+
+        # Print for debugging
+        #print(f"Raw X Acceleration: {ax}, Raw X Vel: {self.velocity.x}, Raw X Pos: {self.position.x:.2f}, Smoothed X Pos: {self.ema_position_x:.2f}")
+    
+
+        # Trim data arrays to data_limit
+        self.time_data[:] = self.time_data[-self.data_limit:]
+        self.accel_x_data[:] = self.accel_x_data[-self.data_limit:]
+        self.position_x_raw[:] = self.position_x_raw[-self.data_limit:]
+        self.position_x_smooth[:] = self.position_x_smooth[-self.data_limit:]
+
+        # Update plot
+        self.line_accel_x.set_data(self.time_data, self.accel_x_data)
+        self.line_pos_raw.set_data(self.time_data, self.position_x_raw)
+        self.line_pos_smooth.set_data(self.time_data, self.position_x_smooth)
+
+        # Rescale axes
         self.ax.set_xlim(self.time_data[0], self.time_data[-1])
-
-        # The y-axis needs to be re-scaled to fit the min/max of visible data
-        all_visible_data = self.x_data + self.y_data + self.z_data
-        if all_visible_data:
-            # min_val = min(all_visible_data)
-            # max_val = max(all_visible_data)
-
-            self.ax.set_ylim(-50000, 50000)
+        all_visible = self.accel_x_data + self.position_x_raw + self.position_x_smooth
+        if all_visible:
+            self.ax.set_ylim(min(all_visible), max(all_visible))
 
         self.ax.tick_params(axis='x', rotation=45)
         plt.tight_layout()
 
-        # print(f"{self.x_data}")
-        # print(f"{self.y_data}")
-
-        return self.line_x, self.line_y, self.line_z
-    
-    def show(self):
-        plt.show()
-    
+        return self.line_accel_x, self.line_pos_raw, self.line_pos_smooth
