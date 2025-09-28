@@ -1,4 +1,5 @@
 import time
+import math
 from freewili          import FreeWili
 from freewili.types    import FreeWiliProcessorType
 from freewili.types    import EventType, AccelData
@@ -62,12 +63,17 @@ class FreeWiliDevice():
             print("Keyboard Interrupt detected")
             self.end()
 
+    def deadband_axis(self, raw_value, deadband):
+        if abs(raw_value) > deadband:
+            return (abs(raw_value) - deadband) * math.copysign(1.0, raw_value)
+        else:
+            return 0;
 
     def event_handler(self, event_type: EventType, frame: ResponseFrame, data):
         if event_type == EventType.Accel and isinstance(data, AccelData):
-            self.acceleration.x = data.x  if abs(data.x) > 3000 else 0
-            self.acceleration.y = data.y if abs(data.y) > 3000 else 0
-            self.acceleration.z = data.z if abs(data.z) > 3000 else 0
+            self.acceleration.x = self.deadband_axis(data.x, 3000);
+            self.acceleration.y = self.deadband_axis(data.y, 3000);
+            self.acceleration.z = self.deadband_axis(data.z, 3000);
     
     def configure_led(self, color: Colors):
         r, g, b = color.value
