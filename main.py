@@ -1,37 +1,31 @@
 import pynput
-import pyautogui
 import time
 from dataclasses import dataclass
-from typing import Tuple
-import threading
 import matplotlib.pyplot as plt
 
-
 # Our files
-from get_acceleration import FreeWiliDevice
-from graph            import Graph
-
-def get_window_size() -> Tuple[int, int]:
-    return pyautogui.size()
-    
-
+from free_wili import FreeWiliDevice
+from graph     import Graph
+from physics    import Physics       
 
 def main():
-
-
     freewili = FreeWiliDevice()
+    physics  = Physics(lambda: freewili.acceleration)
     mouse = pynput.mouse.Controller()
 
-    def acceleration_getter():
-        return freewili.acceleration
-    
-    animation = Graph(acceleration_getter)
+    enable_graph = False
+    if enable_graph:
+        graph = Graph(lambda: physics.acceleration, lambda: physics.velocity, lambda: physics.position)
 
     try:
         while True:
             freewili.process_events()
-            mouse.position = (animation.position_x_smooth[-1], 500)
-            plt.pause(0.01)
+            physics.step()
+            mouse.position = (1980-physics.position.x, 1080-physics.position.y)
+            if enable_graph:
+                plt.pause(0.01)
+            else:
+                time.sleep(0.01)
     except KeyboardInterrupt:
         print("Keyboard Interrupt detected")
         freewili.end()
