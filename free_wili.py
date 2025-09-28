@@ -28,6 +28,7 @@ class FreeWiliDevice():
         GREEN = (0, 60, 0) 
         BLUE = (0, 0, 60)
         YELLOW = (30, 30, 0)
+        PURPLE = (30, 0, 30)
         WHITE = (20, 20, 20)
         OFF = (0, 0, 0)
     def __init__(self, acceleration_period=1):

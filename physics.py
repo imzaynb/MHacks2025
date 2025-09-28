@@ -13,12 +13,18 @@ class Physics:
         self.acceleration      = Vec3d(0.0, 0.0, 0.0)
         self.velocity          = Vec3d(0.0, 0.0, 0.0)
         self.position          = Vec3d(1920/2, 1080/2, 0.0)
+        
+        self.paused = False
 
     def step(self):
+        if self.paused:
+            return
+
         raw_acceleration = self.get_acceleration()
         self.time_now = dt.now().timestamp()
 
         delta_t       = (self.time_now - self.time_start) if self.time_prev == None else (self.time_now - self.time_prev)
+        delta_t       = clamp(delta_t, 0, 0.005)
 
         self.acceleration.x = clamp(raw_acceleration.x, -4000.0, 4000.0)
         adjusted_velocity_x = self.velocity.x + self.acceleration.x * delta_t if self.acceleration.x != 0 else 0
@@ -38,5 +44,6 @@ class Physics:
         self.time_prev = self.time_now
 
 
-        print(f"{delta_t},{self.acceleration.x},{self.velocity.x},{self.position.x}")
 
+    def setPaused(self, value: bool):
+        self.paused = bool

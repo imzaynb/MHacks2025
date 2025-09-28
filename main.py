@@ -19,8 +19,7 @@ def main():
     if enable_graph:
         graph = Graph(lambda: physics.acceleration, lambda: physics.velocity, lambda: physics.position)
 
-    threading.Thread(target=voiceThread, args=(freewili, ), daemon=True).start()
-
+    threading.Thread(target=voiceThread, args=(freewili, physics.setPaused), daemon=True).start()
 
     try:
         while True:
