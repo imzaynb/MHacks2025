@@ -65,9 +65,9 @@ class FreeWiliDevice():
 
     def event_handler(self, event_type: EventType, frame: ResponseFrame, data):
         if event_type == EventType.Accel and isinstance(data, AccelData):
-            self.acceleration.x = data.x  if abs(data.x) > 2500 else 0
-            self.acceleration.y = data.y if abs(data.y) > 2500 else 0
-            self.acceleration.z = data.z if abs(data.z) > 2500 else 0
+            self.acceleration.x = data.x  if abs(data.x) > 3000 else 0
+            self.acceleration.y = data.y if abs(data.y) > 3000 else 0
+            self.acceleration.z = data.z if abs(data.z) > 3000 else 0
     
     def configure_led(self, color: Colors):
         r, g, b = color.value
