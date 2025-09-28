@@ -45,7 +45,7 @@ def voiceThread(freewili, setPause):
                                 mouse.click(pynput.mouse.Button.right, 1)
                                 freewili.configure_led(FreeWiliDevice.Colors.PURPLE, 0.3)
                                 print("RIGHT")
-                            case "hold":
+                            case "press":
                                 mouse.press(pynput.mouse.Button.left)
                                 freewili.configure_led(FreeWiliDevice.Colors.YELLOW, 0.3, True)
                                 print("HOLD")
@@ -53,18 +53,26 @@ def voiceThread(freewili, setPause):
                                 mouse.release(pynput.mouse.Button.left)
                                 freewili.configure_led(FreeWiliDevice.Colors.OFF, 0.3)
                                 print("RELEASE")
-                            case "scroll":
-                                mouse.scroll(0, 100)
+                            case "up":
+                                mouse.scroll(0, 20)
                                 freewili.configure_led(FreeWiliDevice.Colors.WHITE, 0.3)
-                                print("SCROLL")
-                            case "paused":
-                                setPause(False)
+                                print("UP")
+                            case "down":
+                                mouse.scroll(0, -20)
+                                freewili.configure_led(FreeWiliDevice.Colors.WHITE, 0.3)
+                                print("DOWN")
+                            case "pause":
+                                setPause(True)
                                 freewili.configure_led(FreeWiliDevice.Colors.RED, 0.3, True)
                                 print("PAUSED")
-                            case "resume":
-                                setPause(True)
+                            case "play":
+                                setPause(False)
                                 freewili.configure_led(FreeWiliDevice.Colors.GREEN, 0.1)
                                 print("RESUME")
+                            case "rick":
+                                import webbrowser
+                                webbrowser.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+                                print("Never gonna give you up!")
             # else:
             #     # Partial result for in-progress recognition
             #     partial = json.loads(rec.PartialResult())

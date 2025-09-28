@@ -11,9 +11,13 @@ from physics    import Physics
 from microphone import voiceThread
 
 def main():
+    sensitivity = 0.35
+
     freewili = FreeWiliDevice()
-    physics  = Physics(lambda: freewili.acceleration)
+    physics  = Physics(lambda: freewili.acceleration, sensitivity=sensitivity)
     mouse = pynput.mouse.Controller()
+
+    freewili.configure_led(FreeWiliDevice.Colors.OFF, 0.1)
 
     enable_graph = False 
     if enable_graph:
@@ -25,7 +29,9 @@ def main():
         while True:
             freewili.process_events()
             physics.step()
-            mouse.position = (physics.position.y, 1080-physics.position.x)
+            x = 1080 - physics.position.x
+            y = physics.position.y
+            mouse.position = (y, x)
             if enable_graph:
                 plt.pause(0.01)
     except KeyboardInterrupt:
